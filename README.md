@@ -6,6 +6,7 @@
 ## Installation
 
 Currently you can only install the development version of `DMMS` from GitHub using `devtools`.
+
 ```R
 install.packages("devtools")
 devtools::install_github("langendorfr/DMMS")
