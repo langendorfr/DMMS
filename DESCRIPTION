@@ -1,0 +1,16 @@
+Package: DMMS
+Type: Package
+Title: Tracking and Forecasting Interactions in Real Time
+Version: 0.1.0
+Date: 2017-07-25
+Description: Tools to track and forecast interactions in real time in accordance with the 2016 Proceedings of the Royal Society B paper of the same title by Deyle, May, Munch, and Sugihara.
+Authors@R: person("Ryan", "Langendorf", role = c("aut", "cre"), email = "ryan.langendorf@colorado.edu")
+URL: https://github.com/langendorfr/DMMS   
+License: GPL-3
+Encoding: UTF-8
+Depends: R (>= 3.1.0)
+Imports:
+    Matrix,
+    quantreg
+LazyData: true
+RoxygenNote: 6.0.1
