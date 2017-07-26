@@ -4,7 +4,11 @@
 #'
 #' @param time_series A data frame where each column is a time series. 
 #' 
-#' @param target Which time series (column) to calculate the sequential interactions of.
+#' @param target Which time series (column) to calculate the sequential interactions of. 
+#' 
+#' @param date Optional vector of dates. 
+#' 
+#' @param theta Parameter to tune the relationship between distance and weight in the linear model. Defaults to 8 which was used by Deyle, May, Munch, and Sugihara.
 #'
 #' @return A data frame where each column is a row of the sequential Jacobian.
 #' 
@@ -17,10 +21,53 @@
 #' 
 #' @export
 
-track <- function(time_series, target)
+track <- function(time_series, target, date, theta = 8)
 {
-
   
+  # Names for the output sequential Jacobian
+  coeff_names <-sapply(colnames(time_series), function(x) paste("d", colnames(time_series)[target], "/d", x, sep =""))
+  
+  # Combine target time series at time t+1 with all time series at time t
+  block_raw <- cbind(time_series[2:nrow(time_series), target], time_series[1:(nrow(time_series)-1), ])
+  block <- as.data.frame(apply(block_raw, 2, function(x) (x-mean(x)) / sd(x)))
+  
+  # Full library of time steps
+  lib <- 1:nrow(block)  
+  
+  # Full set of prediction time steps
+  pred <- 1:nrow(block) 
+  
+  # Output sequential Jacobian
+  coeff <- data.frame(0, dim = c(length(pred), ncol(time_series)))
+  colnames(coeff) <- coeff_names
 
-  return()
+  # Exponentially-weighted linear model for each time point from t to t_max-1  
+  for (ipred in 1:length(pred)) {
+    
+    # Target time point is excluded from the fitting procedure
+    libs = lib[-pred[ipred]]
+    
+    # Calculate weights
+    q <- matrix(as.numeric(block[pred[ipred], 2:dim(block)[2]]), ncol = ncol(time_series), nrow = length(libs), byrow = TRUE)
+    distances <- sqrt(rowSums((block[libs, 2:dim(block)[2]] - q)^2))
+    dbar <- mean(distances)
+    weights <- exp(-theta * distances / dbar)
+    
+    # Regression using singular value decomposition and the calculated weights
+    svd_fit <- DMMS::lm_svdsolve(block[libs, 1], block[libs, 2:dim(block)[2]], weights)
+    
+    # Add sequential Jacobians to the growing output, ignoring the constant term in the linear model
+    coeff[ipred, ] <- svd_fit[-1]
+  }
+  
+  # Combine output with the observation dates if supplied, or a simple counter ID if not
+  if (missing(date)) {
+    coeff <-cbind(pred, coeff)
+    colnames(coeff)[1] <- "ID"    
+  } else {
+    coeff <-cbind(date, coeff)
+    colnames(coeff)[1] <- "Date" 
+  }
+    
+  return(coeff)
 }
