@@ -29,7 +29,7 @@ track <- function(time_series, target, date, theta = 8)
   
   # Combine target time series at time t+1 with all time series at time t
   block_raw <- cbind(time_series[2:nrow(time_series), target], time_series[1:(nrow(time_series)-1), ])
-  block <- as.data.frame(apply(block_raw, 2, function(x) (x-mean(x)) / sd(x)))
+  block <- as.data.frame(apply(block_raw, 2, function(x) (x-mean(x)) / (sd(x)+1e-5) )) # 1e-5 is added to prevent divide by zero errors
   
   # Full library of time steps
   lib <- 1:nrow(block)  
@@ -38,7 +38,7 @@ track <- function(time_series, target, date, theta = 8)
   pred <- 1:nrow(block) 
   
   # Output sequential Jacobian
-  coeff <- data.frame(0, dim = c(length(pred), ncol(time_series)))
+  coeff <- as.data.frame(matrix(0, nrow = length(pred), ncol = ncol(time_series)))
   colnames(coeff) <- coeff_names
 
   # Exponentially-weighted linear model for each time point from t to t_max-1  
@@ -62,10 +62,10 @@ track <- function(time_series, target, date, theta = 8)
   
   # Combine output with the observation dates if supplied, or a simple counter ID if not
   if (missing(date)) {
-    coeff <-cbind(pred, coeff)
+    coeff <- cbind(pred, coeff)
     colnames(coeff)[1] <- "ID"    
   } else {
-    coeff <-cbind(date, coeff)
+    coeff <- cbind(date[1:(length(date)-1)], coeff)
     colnames(coeff)[1] <- "Date" 
   }
     
