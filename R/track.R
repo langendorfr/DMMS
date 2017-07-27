@@ -6,9 +6,11 @@
 #' 
 #' @param target Which time series (column) to calculate the sequential interactions of. 
 #' 
-#' @param date Optional vector of dates. 
+#' @param dates Optional vector of dates. 
 #' 
 #' @param theta Parameter to tune the relationship between distance and weight in the linear model. Defaults to 8 which was used by Deyle, May, Munch, and Sugihara.
+#'
+#' @param block Defaults to FALSE. If your data is stacked spatial replicates, where you have already made the first column for time 1+1 and all others for time t.
 #'
 #' @return A data frame where each column is a row of the sequential Jacobian.
 #' 
@@ -21,14 +23,28 @@
 #' 
 #' @export
 
-track <- function(time_series, target, date, theta = 8)
+track <- function(time_series, target, dates, theta = 8, block = FALSE)
 {
+  # # 
+  # if (missing(target)) {
+  #   target <- 1
+  # }
   
   # Names for the output sequential Jacobian
-  coeff_names <-sapply(colnames(time_series), function(x) paste("d", colnames(time_series)[target], "/d", x, sep =""))
+  if (block == TRUE) {
+    coeff_names <- sapply(colnames(time_series), function(x) paste("d", colnames(time_series)[1], "/d", x, sep ="")) 
+  } else {
+    coeff_names <-sapply(colnames(time_series), function(x) paste("d", colnames(time_series)[target], "/d", x, sep =""))
+  }
+
+  # Combine target time series at time t+1 with all time series at time t, unless block == TRUE
+  if (block == TRUE) {
+    block_raw <- time_series
+  } else {
+    block_raw <- cbind(time_series[2:nrow(time_series), target], time_series[1:(nrow(time_series)-1), ])
+  }  
   
-  # Combine target time series at time t+1 with all time series at time t
-  block_raw <- cbind(time_series[2:nrow(time_series), target], time_series[1:(nrow(time_series)-1), ])
+  # "All time series were normalized to have a mean of 0 and standard deviation of 1." - Deyle, May, Munch, and Sugihara
   block <- as.data.frame(apply(block_raw, 2, function(x) (x-mean(x)) / (sd(x)+1e-5) )) # 1e-5 is added to prevent divide by zero errors
   
   # Full library of time steps
@@ -63,11 +79,11 @@ track <- function(time_series, target, date, theta = 8)
   }
   
   # Combine output with the observation dates if supplied, or a simple counter ID if not
-  if (missing(date)) {
+  if (missing(dates)) {
     coeff <- cbind(pred, coeff)
     colnames(coeff)[1] <- "ID"    
   } else {
-    coeff <- cbind(date[1:(length(date)-1)], coeff)
+    coeff <- cbind(dates[1:(length(dates)-1)], coeff)
     colnames(coeff)[1] <- "Date" 
   }
     
