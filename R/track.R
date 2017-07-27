@@ -10,7 +10,7 @@
 #' 
 #' @param theta Parameter to tune the relationship between distance and weight in the linear model. Defaults to 8 which was used by Deyle, May, Munch, and Sugihara.
 #'
-#' @param block Defaults to FALSE. If your data is stacked spatial replicates, where you have already made the first column for time 1+1 and all others for time t.
+#' @param manual_block Defaults to FALSE. If your data is stacked spatial replicates, where you have already made the first column for time 1+1 and all others for time t.
 #'
 #' @return A data frame where each column is a row of the sequential Jacobian.
 #' 
@@ -23,22 +23,17 @@
 #' 
 #' @export
 
-track <- function(time_series, target, dates, theta = 8, block = FALSE)
+track <- function(time_series, target, dates, theta = 8, manual_block = FALSE)
 {
-  # # 
-  # if (missing(target)) {
-  #   target <- 1
-  # }
-  
   # Names for the output sequential Jacobian
-  if (block == TRUE) {
-    coeff_names <- sapply(colnames(time_series), function(x) paste("d", colnames(time_series)[1], "/d", x, sep ="")) 
+  if (manual_block == TRUE) {
+    coeff_names <- sapply(colnames(time_series)[2:ncol(time_series)], function(x) paste("d", colnames(time_series)[1], "/d", x, sep ="")) 
   } else {
     coeff_names <-sapply(colnames(time_series), function(x) paste("d", colnames(time_series)[target], "/d", x, sep =""))
   }
 
   # Combine target time series at time t+1 with all time series at time t, unless block == TRUE
-  if (block == TRUE) {
+  if (manual_block == TRUE) {
     block_raw <- time_series
   } else {
     block_raw <- cbind(time_series[2:nrow(time_series), target], time_series[1:(nrow(time_series)-1), ])
@@ -54,7 +49,14 @@ track <- function(time_series, target, dates, theta = 8, block = FALSE)
   pred <- 1:nrow(block) 
   
   # Output sequential Jacobian
-  coeff <- as.data.frame(matrix(0, nrow = length(pred), ncol = ncol(time_series)))
+  if (manual_block == TRUE) {
+    coeff <- as.data.frame(matrix(0, nrow = length(pred), ncol = ncol(time_series) - 1))
+  } else {
+    coeff <- as.data.frame(matrix(0, nrow = length(pred), ncol = ncol(time_series)))
+  }
+    
+  
+  
   colnames(coeff) <- coeff_names
 
   # Exponentially-weighted linear model for each time point from t to t_max-1  
@@ -64,8 +66,8 @@ track <- function(time_series, target, dates, theta = 8, block = FALSE)
     libs = lib[-pred[ipred]]
     
     # Calculate weights
-    q <- matrix(as.numeric(block[pred[ipred], 2:dim(block)[2]]), ncol = ncol(time_series), nrow = length(libs), byrow = TRUE)
-    distances <- sqrt(rowSums((block[libs, 2:dim(block)[2]] - q)^2))
+    q <- matrix(as.numeric(block[pred[ipred], 2:ncol(block)]), ncol = ncol(coeff), nrow = length(libs), byrow = TRUE)
+    distances <- sqrt(rowSums((block[libs, 2:ncol(block)] - q)^2))
     dbar <- mean(distances)
     weights <- exp(-theta * distances / dbar)
     

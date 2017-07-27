@@ -4,7 +4,7 @@
 \alias{track}
 \title{Tracking and Forecasting Interactions in Real Time}
 \usage{
-track(time_series, target, dates, theta = 8, block = FALSE)
+track(time_series, target, dates, theta = 8, manual_block = FALSE)
 }
 \arguments{
 \item{time_series}{A data frame where each column is a time series.}
@@ -15,7 +15,7 @@ track(time_series, target, dates, theta = 8, block = FALSE)
 
 \item{theta}{Parameter to tune the relationship between distance and weight in the linear model. Defaults to 8 which was used by Deyle, May, Munch, and Sugihara.}
 
-\item{block}{Defaults to FALSE. If your data is stacked spatial replicates, where you have already made the first column for time 1+1 and all others for time t.}
+\item{manual_block}{Defaults to FALSE. If your data is stacked spatial replicates, where you have already made the first column for time 1+1 and all others for time t.}
 }
 \value{
 A data frame where each column is a row of the sequential Jacobian.
