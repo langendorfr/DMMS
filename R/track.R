@@ -54,7 +54,9 @@ track <- function(time_series, target, date, theta = 8)
     weights <- exp(-theta * distances / dbar)
     
     # Regression using singular value decomposition and the calculated weights
-    svd_fit <- DMMS::lm_svdsolve(block[libs, 1], block[libs, 2:dim(block)[2]], weights)
+    y <- block[libs, 1]
+    x <- block[libs, 2:dim(block)[2]]
+    svd_fit <- DMMS::lm_svdsolve(y, x, weights)
     
     # Add sequential Jacobians to the growing output, ignoring the constant term in the linear model
     coeff[ipred, ] <- svd_fit[-1]
