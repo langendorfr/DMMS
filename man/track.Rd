@@ -4,16 +4,18 @@
 \alias{track}
 \title{Tracking and Forecasting Interactions in Real Time}
 \usage{
-track(time_series, target, date, theta = 8)
+track(time_series, target, dates, theta = 8, block = FALSE)
 }
 \arguments{
 \item{time_series}{A data frame where each column is a time series.}
 
 \item{target}{Which time series (column) to calculate the sequential interactions of.}
 
-\item{date}{Optional vector of dates.}
+\item{dates}{Optional vector of dates.}
 
 \item{theta}{Parameter to tune the relationship between distance and weight in the linear model. Defaults to 8 which was used by Deyle, May, Munch, and Sugihara.}
+
+\item{block}{Defaults to FALSE. If your data is stacked spatial replicates, where you have already made the first column for time 1+1 and all others for time t.}
 }
 \value{
 A data frame where each column is a row of the sequential Jacobian.
