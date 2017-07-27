@@ -5,7 +5,7 @@
 
 ## Installation
 
-Currently you can only install the development version of `DMMS` from GitHub using `devtools`.
+Currently there  is only a development version of `DMMS`. You can install it from GitHub using `devtools`.
 
 ```R
 install.packages("devtools")
