@@ -17,7 +17,7 @@
 #' 
 #' @export
 
-lm_svdsolve <-function(y, x, weights) 
+lm_svdsolve <- function(y, x, weights) 
 {
   
   # Add column of ones for the constant term in the linear model
