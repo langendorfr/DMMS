@@ -24,11 +24,10 @@ lm_svdsolve <- function(y, x, weights)
   A <- cbind(1, x) * weights
   A_svd <- svd(A)
   
-  # Remove small singular values
   s <- A_svd$d
   s_inv <- matrix(0, nrow = (ncol(x)+1), ncol = (ncol(x)+1))
   for(i in seq_along(s)){
-    if(s[i] >= max(s) * 1e-5)
+    # if(s[i] >= max(s) * 1e-5) # Remove small singular values
       s_inv[i, i] <- 1/s[i]
   }
   
