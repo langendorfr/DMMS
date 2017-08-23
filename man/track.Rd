@@ -4,7 +4,8 @@
 \alias{track}
 \title{Tracking and Forecasting Interactions in Real Time}
 \usage{
-track(time_series, target, dates, theta = 8, manual_block = FALSE)
+track(time_series, target, dates, theta = 8, manual_block = FALSE,
+  causal_probabilities, causal_iterations = 100)
 }
 \arguments{
 \item{time_series}{A data frame where each column is a time series.}
@@ -16,6 +17,10 @@ track(time_series, target, dates, theta = 8, manual_block = FALSE)
 \item{theta}{Parameter to tune the relationship between distance and weight in the linear model. Defaults to 8 which was used by Deyle, May, Munch, and Sugihara.}
 
 \item{manual_block}{Defaults to FALSE. If your data is stacked spatial replicates, where you have already made the first column for time 1+1 and all others for time t.}
+
+\item{causal_probabilities}{Causal probabilities, or 1 - p-values from a test for causality, for each interactor (column in the data).}
+
+\item{causal_iterations}{Defaults to 100. Determines how many times the causal filter is applied. For large datasets this can cause slowdowns which is why the default is only 100.}
 }
 \value{
 A data frame where each column is a row of the sequential Jacobian.
