@@ -27,7 +27,7 @@
 #' 
 #' @export
 
-track <- function(time_series, target, dates, theta = 8, manual_block = FALSE, causal_probabilities, causal_iterations = 1e2)
+track <- function(time_series, target, dates, theta = 8, manual_block = FALSE, causal_probabilities, causal_iterations = 1e2, causal_ID)
 {
   
   # Names for the output sequential Jacobian
@@ -48,7 +48,8 @@ track <- function(time_series, target, dates, theta = 8, manual_block = FALSE, c
   if (missing(causal_probabilities)) {
     block_processed <- block_raw  
   } else {
-    block_processed <- cbind(rep(block_raw[, 1], causal_iterations), causal_filter(block_raw[, -1], probabilities = causal_probabilities, iterations = causal_iterations))  
+    dat <- causal_filter(as.matrix(block_raw[, -1]), probabilities = causal_probabilities, iterations = causal_iterations, ID = causal_ID)
+    block_processed <- cbind(rep(as.matrix(block_raw[, 1]), causal_iterations), dat$data)  
   }
   
   
@@ -81,10 +82,10 @@ track <- function(time_series, target, dates, theta = 8, manual_block = FALSE, c
     libs = lib[-pred[ipred]]
     
     # If a causal filter was supplied determine which data points will be included in calculating the weights for the linear models
-    if (missing(causal_filter)) {
+    if (missing(causal_probabilities)) {
       weights_filter <- matrix(1, nrow = nrow(block) - 1, ncol = ncol(block) - 1)
     } else {
-      weights_filter <- causal_filter[-pred[ipred], ]
+      weights_filter <- dat$filter[-pred[ipred], ]
     }
     
     # Calculate weights
@@ -109,14 +110,14 @@ track <- function(time_series, target, dates, theta = 8, manual_block = FALSE, c
   
   
   # Needed to find the summarized Jacobians for each true data point if causal filtering was used
-  if (missing(causal_filter)) {
+  if (missing(causal_probabilities)) {
     data_size <- nrow(time_series)
   } else {
     data_size <- nrow(time_series)/causal_iterations
   }
   
   # Return the average for each data point if causal filtering was used
-  if (missing(causal_filter)) {
+  if (missing(causal_probabilities)) {
   } else {
     coeff_full <- coeff
     coeff <- data.frame(matrix(NA, nrow = data_size, ncol = ncol(coeff)))
