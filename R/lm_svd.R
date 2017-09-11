@@ -23,27 +23,27 @@
 
 lm_svd <- function(y, x, weights, intercept = TRUE) 
 {
-  # Normalize weights
-  weights_normalized <- weights #/sum(weights)
+  # Assign all ones for the weights if none are supplied
+  if (missing(weights)) {
+    weights <- rep(1, nrow(x))
+  }
+  
+  # Process weights
+  weights_processed <- sqrt(weights/sum(weights)) #/sum(weights)
   
   # Add column of ones for the constant term in the linear model unless intercept = FALSE
   if (intercept == TRUE) {
-    A <- cbind(1, (x * weights_normalized))
+    A <- cbind(1, x) * weights_processed
   } else {
-    A <- x * weights_normalized
+    A <- x * weights_processed
   }
   
   # Singular Value Decomposition
   A_svd <- svd(A)
   
+  # Calculate Sigma^-1
   s <- A_svd$d
-  
-  if (intercept == TRUE) {
-    s_inv <- matrix(0, nrow = (ncol(x)+1), ncol = (ncol(x)+1))
-  } else {
-    s_inv <- matrix(0, nrow = ncol(x), ncol = ncol(x))
-  }
-  
+  s_inv <- matrix(0, nrow = ncol(A), ncol = ncol(A))
   for(i in seq_along(s)){
     if(s[i] >= max(s) * 1e-5) { # Remove small singular values
       s_inv[i, i] <- 1/s[i]
@@ -51,7 +51,7 @@ lm_svd <- function(y, x, weights, intercept = TRUE)
   }
   
   # Exponentially-weighted regression using singular value decomposition
-  coeff <- t(A_svd$v %*% s_inv %*% t(A_svd$u) %*% (weights_normalized * y))
+  coeff <- t(A_svd$v %*% s_inv %*% t(A_svd$u) %*% (weights_processed * y))
   
   
   if (intercept == TRUE) {

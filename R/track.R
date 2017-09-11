@@ -52,11 +52,6 @@ track <- function(time_series, target, dates, theta = 8, manual_block = FALSE, c
     block_processed <- cbind(rep(as.matrix(block_raw[, 1]), causal_iterations), dat$data)  
   }
   
-  
-  
-  
-  
-  
   # "All time series were normalized to have a mean of 0 and standard deviation of 1." - Deyle, May, Munch, and Sugihara
   block <- as.data.frame(apply(block_processed, 2, function(x) (x-mean(x)) / (sd(x)+1e-5) )) # 1e-5 is added to prevent divide by zero errors
   
@@ -74,6 +69,10 @@ track <- function(time_series, target, dates, theta = 8, manual_block = FALSE, c
   }
   
   colnames(coeff) <- coeff_names
+  
+  # Add in a column for the constant term in the linear model
+  coeff <- cbind(rep(NA, nrow(coeff)), coeff)
+  colnames(coeff)[1] <- "Constant"
 
   # Exponentially-weighted linear model for each time point from t to t_max-1  
   for (ipred in 1:length(pred)) {
@@ -89,7 +88,7 @@ track <- function(time_series, target, dates, theta = 8, manual_block = FALSE, c
     }
     
     # Calculate weights
-    q <- matrix(as.numeric(block[pred[ipred], 2:ncol(block)]), ncol = ncol(coeff), nrow = length(libs), byrow = TRUE)
+    q <- matrix(as.numeric(block[pred[ipred], 2:ncol(block)]), ncol = ncol(coeff)-1, nrow = length(libs), byrow = TRUE) # ncol(coeff)-1 because of the added Constant term column
     
     block_filter <- block[libs, 2:ncol(block)] * weights_filter
     q_filter <- q * weights_filter
