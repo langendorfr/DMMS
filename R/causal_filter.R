@@ -18,7 +18,8 @@ causal_filter <- function(data, probabilities, iterations, ID)
 {
   # IDs allow for the filter to be applied to stacked spatial replicates
   if (missing(ID)) {
-    ID = rep(1, nrow(data)*iterations)
+    # ID = rep(1, nrow(data)*iterations)
+    ID = rep(1, nrow(data))
   }
   
   # Initialize filtered data and record of which data was filtered

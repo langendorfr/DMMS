@@ -107,7 +107,6 @@ track <- function(time_series, target, dates, theta = 8, manual_block = FALSE, c
     coeff[ipred, ] <- svd_fit[-1]
   }
   
-  
   # Needed to find the summarized Jacobians for each true data point if causal filtering was used
   if (missing(causal_probabilities)) {
     data_size <- nrow(time_series)
@@ -129,9 +128,6 @@ track <- function(time_series, target, dates, theta = 8, manual_block = FALSE, c
     
   }
   
-  
-  
-  
   # Combine output with the observation dates if supplied, or a simple counter ID if not
   if (missing(dates)) {
     coeff <- cbind(1:data_size, coeff)
@@ -140,8 +136,6 @@ track <- function(time_series, target, dates, theta = 8, manual_block = FALSE, c
     coeff <- cbind(dates[1:(length(dates)-1)], coeff)
     colnames(coeff)[1] <- "Date" 
   }
-  
-
     
   return(coeff)
 }
